@@ -1,0 +1,5 @@
+[tool.tester]
+  option_1 = "python"
+
+[tool.runner]
+  pythonPaths = ["src/something"]
