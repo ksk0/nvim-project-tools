@@ -1,0 +1,2 @@
+[tool.tester]
+   option_1 = "lua"
