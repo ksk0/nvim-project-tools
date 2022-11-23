@@ -1,5 +1,5 @@
 local ppath  = require("plenary.path")
-local F = vim.F
+local list   = require("project-tools.core.list")
 
 local extend_env_var = function (name, path, separator, prepend)
   separator = separator or ":"
@@ -61,25 +61,30 @@ local setup_runner = function(project)
   local tools = project.config.tool
   if not tools then return end
 
-  for _,config in pairs {tools.pyright, tools.runner} do
-    for _,path in pairs {config.venv} do
-        local venv_path = ppath:new(project.root, path).filename
-        local run_path  = ppath:new(venv_path, "bin").filename
-        local lib_path  = python_lib_dir(venv_path)
+  local runner = tools.runner or {}
+  local pyright = tools.pyright or {}
 
-        append_to_env_var("PYTHONPATH", lib_path)
-        prepend_to_env_var ("PATH", run_path)
-    end
+  local venv  = runner.venv or pyright.venv
+  local extraPaths = list.union(runner.extraPaths, pyright.extraPaths)
+  local extraBin   = list.union(runner.extraBin)
 
-    for _,path in pairs(F.if_nil(config.extraPaths, {})) do
-        local lib_path = ppath:new(project.root, path).filename
-        append_to_env_var("PYTHONPATH", lib_path)
-    end
+  if venv then
+      local venv_path = ppath:new(project.root, venv).filename
+      local run_path  = ppath:new(venv_path, "bin").filename
+      local lib_path  = python_lib_dir(venv_path)
 
-    for _,path in pairs(F.if_nil(config.extraBin, {})) do
-        local run_path = ppath:new(project.root, path).filename
-        prepend_to_env_var("PATH", run_path)
-    end
+      prepend_to_env_var("PYTHONPATH", lib_path)
+      prepend_to_env_var ("PATH", run_path)
+  end
+
+  for _,path in pairs(list.reverse(extraPaths)) do
+      local lib_path = ppath:new(project.root, path).filename
+      prepend_to_env_var("PYTHONPATH", lib_path)
+  end
+
+  for _,path in pairs(list.reverse(extraBin)) do
+      local run_path = ppath:new(project.root, path).filename
+      prepend_to_env_var("PATH", run_path)
   end
 end
 
