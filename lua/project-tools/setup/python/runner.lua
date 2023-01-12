@@ -59,7 +59,7 @@ local python_lib_dir = function(path)
   file:close()
 end
 
-local setup = function(project)
+local setup = function(self, project)
   local tools = project._config.tool
   if not tools then return end
 

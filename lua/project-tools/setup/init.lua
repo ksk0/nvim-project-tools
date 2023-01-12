@@ -52,7 +52,7 @@ return function (self, root)
     local task_ok,task_script = pcall(require, script)
 
     if task_ok then
-      task_script(project)
+      task_script(self, project)
     end
   end
 

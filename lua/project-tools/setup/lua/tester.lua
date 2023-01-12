@@ -33,13 +33,14 @@ local run_tests = function ()
   harness.test_directory(test_dir, opts)
 end
 
-local setup = function(pconfig)
+local setup = function(self, pconfig)
   if not pconfig._config.tool then return end
   if not pconfig._config.tool.tests then return end
 
   project = vim.tbl_extend("force", {}, pconfig)
 
-  vim.api.nvim_create_user_command("RunTests", run_tests, {})
+  self.test = run_tests
+  -- vim.api.nvim_create_user_command("RunProjectTests", run_tests, {})
 end
 
 return setup
