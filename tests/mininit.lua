@@ -33,7 +33,6 @@ local plugin_root = script_path():match('(.-)/([^/]+/)$')
 --
 return packer.startup(function(use)
   use (plugin_root)
-  -- use ("/home/koske/develop/nvim/nvim-expose-private")
   use "nvim-lua/plenary.nvim"
   use {"ksk0/nvim-bricks", config = function() require("nvim-bricks") end}
 end)

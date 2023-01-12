@@ -1,0 +1,5 @@
+[tool.tests]
+  dir = "tests"
+  # init = "mininit"
+  sequential = true
+

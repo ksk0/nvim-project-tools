@@ -1,13 +1,60 @@
-local pconfig = require("project-tools.config")
+-- plugin/setup/init
+--
+local fn = vim.fn
+local scanner = require("plenary.scandir").scan_dir
 
-local setup = function (_, root)
-  local config = pconfig.load(root)
+local function get_script_path()
+  local iswin = package.config:sub(1, 1) == '\\'
+  local path  = debug.getinfo(2, 'S').source:sub(2)
 
-  if not config then return end
+  path = path:gsub('/[^/]+$', '/')
 
-  require("project-tools.setup." .. config.lang)(config)
+  if iswin then
+    path = path:gsub('/', '\\')
+  end
+
+  return path
 end
 
-local M = {}
+local setup_dir = get_script_path()
 
-return setmetatable(M,{__call = setup})
+return function (self, root)
+  local project
+
+  if self._file then
+    project = self
+  else
+    project = require("project-tools"):load(root)
+  end
+
+  local lang_dir = setup_dir .. project._lang
+
+  if not project then return end
+  if not project._config.tool then return end
+
+  if fn.isdirectory(lang_dir) == 0 then return project end
+
+  local tasks = scanner(
+    lang_dir, {
+      hidden = false,
+      add_dirs = false,
+      search_pattern = '.*%.lua',
+      silent = true
+    }
+  )
+
+  for _,task in pairs(tasks) do
+    task = task:gsub('.*/','')
+    task = task:gsub('%.lua$','')
+
+    local script = "project-tools.setup." .. project._lang .. "." .. task
+
+    local task_ok,task_script = pcall(require, script)
+
+    if task_ok then
+      task_script(project)
+    end
+  end
+
+  return project
+end

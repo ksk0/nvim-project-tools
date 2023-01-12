@@ -1,5 +1,11 @@
-[tool.tester]
-  option_1 = "python"
+[tool.tests]
+  dir = "tests"
 
 [tool.runner]
-  pythonPaths = ["src/something"]
+  extraPaths = ["runner/lib"]
+  extraBin = ["runner/bin"]
+
+[tool.pyright]
+  venv = ".venv"
+  include =  ["src"]
+  extraPaths = ["src/lib"]
