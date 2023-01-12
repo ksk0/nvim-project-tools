@@ -27,9 +27,6 @@
 ---
 -- vim.notify = function() end
 --
-
-local X = require("project-tools.blabla")
-
 local ppath = require("plenary.path")
 local fn = vim.fn
 local org_path
