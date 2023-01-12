@@ -38,7 +38,7 @@ local find_config = function (root)
   local projects = {}
 
   -- ================================================================
-  -- nested projects should not exists, but if found, use
+  -- nested projects should not exist, but if found, use
   -- deepest project as project. While any duplication of 
   -- project file is considered wrong/dangerouse, using
   -- top most is considered more dangerouse.
