@@ -24,13 +24,13 @@ return function (self, root)
   if self._file then
     project = self
   else
-    project = require("project-tools"):load(root)
+    project = self:load(root)
   end
-
-  local lang_dir = setup_dir .. project._lang
 
   if not project then return end
   if not project._config.tool then return end
+
+  local lang_dir = setup_dir .. project._lang
 
   if fn.isdirectory(lang_dir) == 0 then return project end
 
