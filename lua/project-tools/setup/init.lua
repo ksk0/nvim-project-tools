@@ -38,7 +38,7 @@ local setup = function (self, root)
     lang_dir, {
       hidden = false,
       add_dirs = false,
-      search_pattern = '.*%.lua',
+      search_pattern = '^.*%.lua$',
       silent = true
     }
   )

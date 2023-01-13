@@ -1,9 +1,8 @@
-local test_runner
-local pconfig
+local P
 
 local run_tests = function ()
-  local tool = pconfig._config.tool
-  local root = pconfig._root .. "/"
+  local tool = P._config.tool
+  local root = P._root .. "/"
 
   local test_dir = root .. tool.tests.dir
   local opts = {
@@ -27,10 +26,9 @@ local setup = function(self, pconfig)
   if not pconfig._config.tool then return end
   if not pconfig._config.tool.tests then return end
 
-  pconfig = vim.tbl_extend("force", {}, pconfig)
+  P = vim.fn.deepcopy(pconfig)
 
   self.test = run_tests
-  -- vim.api.nvim_create_user_command("RunProjectTests", run_tests, {})
 end
 
 return setup

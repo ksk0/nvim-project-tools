@@ -142,6 +142,7 @@ local check_runner = function(what, lang, pconfig)
     assert.is_true(vim.tbl_contains(paths,  lib_dir.filename .. "/?.lua"))
     assert.is_true(vim.tbl_contains(paths,  lib_dir.filename .. "/?/init.lua"))
 
+
   elseif  lang == 'python' then
     local extra_bin = pconfig._config.tool.runner.extraBin[1]
     local extra_lib = pconfig._config.tool.runner.extraPaths[1]
@@ -195,7 +196,7 @@ describe("Load module:", function ()
 
   reload_module("project-tools")
 
-  it("Tegular [OK]", function ()
+  it("Regular [OK]", function ()
     assert.no.errors(function() M = require("project-tools") end)
   end)
 end)
@@ -341,6 +342,11 @@ describe("Run setup:", function ()
       assert.no.errors(function() pconfig = M:setup() end)
       check_config('project', 'lua', pconfig)
       check_setup('project', 'lua', pconfig)
+
+      local commands = vim.api.nvim_get_commands({})
+      assert.is_not_nil(commands.RunProjectTests)
+
+      vim.api.nvim_del_user_command('RunProjectTests')
     end)
 
     it("lua-test [OK]", function ()
@@ -350,6 +356,9 @@ describe("Run setup:", function ()
 
       check_config('test', 'lua', pconfig)
       check_setup('test', 'lua', pconfig)
+
+      local commands = vim.api.nvim_get_commands({})
+      assert.is_nil(commands.RunProjectTests)
     end)
 
     it("python-test [OK]", function ()
@@ -369,6 +378,11 @@ describe("Run setup:", function ()
 
       check_config('project', 'lua', pconfig)
       check_setup('project', 'lua', pconfig)
+
+      local commands = vim.api.nvim_get_commands({})
+      assert.is_not_nil(commands.RunProjectTests)
+
+      vim.api.nvim_del_user_command('RunProjectTests')
     end)
 
     it("lua-test [OK]", function ()
@@ -379,6 +393,9 @@ describe("Run setup:", function ()
 
       check_config('test', 'lua', pconfig)
       check_setup('test', 'lua', pconfig)
+
+      local commands = vim.api.nvim_get_commands({})
+      assert.is_nil(commands.RunProjectTests)
     end)
 
     it("python-test [OK]", function ()
