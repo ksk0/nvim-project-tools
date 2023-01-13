@@ -48,13 +48,13 @@ local find_config = function (root)
 
     if project_file ~= "" then
       local file = ppath:new(project_file)
-      local project = {
+      local pconfig = {
         _lang = lang,
         _file = file:absolute(),
         _root = file:parent():absolute(),
       }
 
-      table.insert(projects, project)
+      table.insert(projects, pconfig)
     end
   end
 

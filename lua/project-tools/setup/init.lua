@@ -18,21 +18,21 @@ end
 
 local setup_dir = get_script_path()
 
-return function (self, root)
-  local project
+local setup = function (self, root)
+  local pconfig
 
   if self._file then
-    project = self
+    pconfig = self
   else
-    project = self:load(root)
+    pconfig = self:load(root)
   end
 
-  if not project then return end
-  if not project._config.tool then return end
+  if not pconfig then return end
+  if not pconfig._config.tool then return end
 
-  local lang_dir = setup_dir .. project._lang
+  local lang_dir = setup_dir .. pconfig._lang
 
-  if fn.isdirectory(lang_dir) == 0 then return project end
+  if fn.isdirectory(lang_dir) == 0 then return pconfig end
 
   local tasks = scanner(
     lang_dir, {
@@ -47,14 +47,16 @@ return function (self, root)
     task = task:gsub('.*/','')
     task = task:gsub('%.lua$','')
 
-    local script = "project-tools.setup." .. project._lang .. "." .. task
+    local script = "project-tools.setup." .. pconfig._lang .. "." .. task
 
     local task_ok,task_script = pcall(require, script)
 
     if task_ok then
-      task_script(self, project)
+      task_script(self, pconfig)
     end
   end
 
-  return project
+  return pconfig
 end
+
+return setup

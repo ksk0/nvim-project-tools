@@ -1,2 +1,6 @@
 [tool.tests]
    dir = "tests"
+
+[tool.runner]
+   lib = "lua"
+   plugin = true

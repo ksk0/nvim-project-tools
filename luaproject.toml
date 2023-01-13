@@ -3,3 +3,7 @@
   # init = "mininit"
   sequential = true
 
+[tool.runner]
+  lib = "lua"
+  plugin = true
+

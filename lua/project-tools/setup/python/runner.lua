@@ -1,34 +1,8 @@
+-- setup/python/runner
+--
 local ppath  = require("plenary.path")
 local list   = require("project-tools.core.list")
-
-local extend_env_var = function (name, path, separator, prepend)
-  if not path then return end
-
-  separator = separator or ":"
-
-  if not vim.env[name] then
-    vim.env[name] = path
-    return
-  end
-
-  local paths = vim.split(vim.env[name], separator)
-
-  if not vim.tbl_contains(paths, path) then
-    if prepend then
-      vim.env[name] = path .. separator .. vim.env[name]
-    else
-      vim.env[name] = vim.env[name] .. separator .. path
-    end
-  end
-end
-
-local append_to_env_var = function (name, path, separator)
-  extend_env_var (name, path, separator)
-end
-
-local prepend_to_env_var = function (name, path, separator)
-  extend_env_var (name, path, separator, true)
-end
+local env    = require("project-tools.core.env")
 
 local python_lib_dir = function(path)
   local config_file = ppath:new(path, "pyvenv.cfg").filename
@@ -59,8 +33,8 @@ local python_lib_dir = function(path)
   file:close()
 end
 
-local setup = function(self, project)
-  local tools = project._config.tool
+local setup = function(_, pconfig)
+  local tools = pconfig._config.tool
   if not tools then return end
 
   local runner  = tools.runner or {}
@@ -71,22 +45,22 @@ local setup = function(self, project)
   local extraBin   = list.union(runner.extraBin)
 
   if venv then
-      local venv_path = ppath:new(project._root, venv).filename
+      local venv_path = ppath:new(pconfig._root, venv).filename
       local run_path  = ppath:new(venv_path, "bin").filename
       local lib_path  = python_lib_dir(venv_path)
 
-      prepend_to_env_var("PYTHONPATH", lib_path)
-      prepend_to_env_var("PATH", run_path)
+      env.prepend("PYTHONPATH", lib_path)
+      env.prepend("PATH", run_path)
   end
 
   for _,path in pairs(list.reverse(extraPaths)) do
-      local lib_path = ppath:new(project._root, path).filename
-      prepend_to_env_var("PYTHONPATH", lib_path)
+      local lib_path = ppath:new(pconfig._root, path).filename
+      env.prepend("PYTHONPATH", lib_path)
   end
 
   for _,path in pairs(list.reverse(extraBin)) do
-      local run_path = ppath:new(project._root, path).filename
-      prepend_to_env_var("PATH", run_path)
+      local run_path = ppath:new(pconfig._root, path).filename
+      env.prepend("PATH", run_path)
   end
 end
 

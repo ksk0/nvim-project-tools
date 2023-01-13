@@ -1,19 +1,9 @@
 local test_runner
-local project
-
-if project then
-  local ok_tester,tester = pcall (require, "user.testing." .. project.lang)
-
-  if ok_tester then
-    test_runner = tester.setup(project)
-  else
-    test_runner = function () print("There is no lang " .. project.lang) end
-  end
-end
+local pconfig
 
 local run_tests = function ()
-  local tool = project._config.tool
-  local root = project._root .. "/"
+  local tool = pconfig._config.tool
+  local root = pconfig._root .. "/"
 
   local test_dir = root .. tool.tests.dir
   local opts = {
@@ -37,7 +27,7 @@ local setup = function(self, pconfig)
   if not pconfig._config.tool then return end
   if not pconfig._config.tool.tests then return end
 
-  project = vim.tbl_extend("force", {}, pconfig)
+  pconfig = vim.tbl_extend("force", {}, pconfig)
 
   self.test = run_tests
   -- vim.api.nvim_create_user_command("RunProjectTests", run_tests, {})
