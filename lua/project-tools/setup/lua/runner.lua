@@ -18,9 +18,9 @@ local setup = function(_, pconfig)
   end
 
   if runner.plugin == 1 then
-    local plugin_dir = pconfig._root .. '/plugin'
+    local plugin_dir  = pconfig._root .. '/plugin'
 
-    local scripts = scanner(
+    local vim_scripts = scanner(
       plugin_dir, {
         hidden = false,
         add_dirs = false,
@@ -29,19 +29,28 @@ local setup = function(_, pconfig)
       }
     )
 
-    for _,script in pairs(scripts) do
+    local lua_scripts = scanner(
+      plugin_dir, {
+        hidden = false,
+        add_dirs = false,
+        search_pattern = '^.*%.lua$',
+        silent = true
+      }
+    )
+
+    for _,script in pairs(vim_scripts) do
       vim.cmd('source ' .. script)
+    end
+
+    for _,script in pairs(lua_scripts) do
+      print("Lua script: " .. script)
+      dofile(script)
     end
   end
 
   if runner.init then
     local pinit = pconfig._root .. '/' .. runner.init
-
-    local ok,_ = pcall(dofile, pinit)
-    if not ok then
-      local msg = string.format('Init file: "%s" not found!', runner.init)
-      vim.notify(msg, "error")
-    end
+    dofile(pinit)
   end
 end
 
