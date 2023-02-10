@@ -6,4 +6,3 @@
 [tool.runner]
   lib = "lua"
   plugin = true
-
