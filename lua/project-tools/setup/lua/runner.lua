@@ -3,18 +3,26 @@
 local scanner = require("plenary.scandir").scan_dir
 local env = require("project-tools.core.env")
 
+local add_lib = function (path)
+  package.cpath = env.prepend_var(package.cpath, path .. '/?.so', ';')
+  package.path  = env.prepend_var(package.path,  path .. '/?.lua', ';')
+  package.path  = env.prepend_var(package.path,  path .. '/?/init.lua', ';')
+end
+
 local setup = function(_, pconfig)
   local tools = pconfig._config.tool
   if not tools then return end
 
   local runner  = tools.runner or {}
 
-  if runner.lib then
-    local plib = pconfig._root .. '/' .. runner.lib
+  local lib = runner.lib
 
-    package.cpath = env.prepend_var(package.cpath, plib .. '/?.so', ';')
-    package.path  = env.prepend_var(package.path,  plib .. '/?.lua', ';')
-    package.path  = env.prepend_var(package.path,  plib .. '/?/init.lua', ';')
+  if lib then
+    local paths = type(lib) == 'table' and lib or {lib}
+
+    for _,path in ipairs(paths) do
+      add_lib(pconfig._root .. '/' .. path)
+    end
   end
 
   if runner.plugin == 1 then
@@ -43,7 +51,6 @@ local setup = function(_, pconfig)
     end
 
     for _,script in pairs(lua_scripts) do
-      print("Lua script: " .. script)
       dofile(script)
     end
   end
