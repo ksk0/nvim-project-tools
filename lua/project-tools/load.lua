@@ -30,7 +30,7 @@ local search_path = function(root)
   return search_root .. ";" .. parents[#parents-1]
 end
 
-local find_config = function (root)
+local find_config = function (self, root)
   local spath = search_path(root)
 
   if not spath then return end
@@ -67,33 +67,44 @@ local find_config = function (root)
     end
   )
 
-  return projects[1]
+  local project = projects[1]
+
+  self._lang = project._lang
+  self._file = project._file
+  self._root = project._root
+
+  return true
 end
 
 local load_config = function(self, root)
-  local pconfig = find_config(root)
-
-  if not pconfig then return end
-
-  local file = io.open(pconfig._file, "r")
-
-  if not file then
-    vim.notify("Failed to open project file " .. pconfig._file, "error")
+  if not find_config(self, root) then
     return
   end
 
-  pconfig._config = parser.decode(file:read("*a"))
+  local file = io.open(self._file, "r")
+
+  if not file then
+    vim.notify("Failed to open project file " .. self._file, "error")
+    return
+  end
+
+  self._config = parser.decode(file:read("*a"))
 
   file:close()
-
-  pconfig = vim.tbl_extend("force", self, pconfig)
 
   -- ================================================
   -- each "load_config" will create it's own
   -- object, but will inherit "project-tools"
   -- object, thus being offspring off "project-tools"
   --
-  return setmetatable(pconfig, getmetatable(self))
+  -- OBSOLETE !!!
+  --
+  -- pconfig = vim.tbl_extend("force", self, pconfig)
+  -- return setmetatable(pconfig, getmetatable(self))
+  --
+  -- self = vim.tbl_extend("force", self, pconfig)
+
+  return self
 end
 
 local create_test_object = function ()
