@@ -1,7 +1,6 @@
 local luacache = (_G.__luacache or {}).cache
-local M = {}
 
-M.reload = function(what)
+local reload = function(what)
   if not what then return end
 
   local pattern = "^" .. vim.pesc(what) .. "%."
@@ -25,4 +24,4 @@ M.reload = function(what)
   end
 end
 
-return M
+return reload
