@@ -11,19 +11,25 @@ M._lang = false
 
 return setmetatable(M, {
   __index = function(self, k)
-    -- if project config is already loaded
-    -- call functions for specific language
-    --
     local ok,val
     local lang = self._lang
 
+    -- ========================================
+    -- if project config is already loaded
+    -- call functions for specific language
+    --
     if lang then
       ok,val = pcall(require, "project-tools.lang." .. lang .. "." .. k)
     else
       ok,val = pcall(require, "project-tools." .. k)
-      if not ok then
-        ok,val = pcall(require, "project-tools.lang.default." .. k)
-      end
+    end
+
+    -- ========================================
+    -- if command is not found, check if there
+    -- is default one
+    --
+    if not ok then
+      ok,val = pcall(require, "project-tools.lang.default." .. k)
     end
 
     if ok then
