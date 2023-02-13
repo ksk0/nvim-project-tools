@@ -33,8 +33,8 @@ local python_lib_dir = function(path)
   file:close()
 end
 
-local setup = function(_, pconfig)
-  local tools = pconfig._config.tool
+local setup = function(self)
+  local tools = self._config.tool
   if not tools then return end
 
   local runner  = tools.runner or {}
@@ -45,7 +45,7 @@ local setup = function(_, pconfig)
   local extraBin   = list.union(runner.extraBin)
 
   if venv then
-      local venv_path = ppath:new(pconfig._root, venv).filename
+      local venv_path = ppath:new(self._root, venv).filename
       local run_path  = ppath:new(venv_path, "bin").filename
       local lib_path  = python_lib_dir(venv_path)
 
@@ -54,12 +54,12 @@ local setup = function(_, pconfig)
   end
 
   for _,path in pairs(list.reverse(extraPaths)) do
-      local lib_path = ppath:new(pconfig._root, path).filename
+      local lib_path = ppath:new(self._root, path).filename
       env.prepend("PYTHONPATH", lib_path)
   end
 
   for _,path in pairs(list.reverse(extraBin)) do
-      local run_path = ppath:new(pconfig._root, path).filename
+      local run_path = ppath:new(self._root, path).filename
       env.prepend("PATH", run_path)
   end
 end

@@ -1,4 +1,4 @@
--- setup/lua/runner
+-- lua/setup
 --
 local scanner = require("plenary.scandir").scan_dir
 local env = require("project-tools.core.env")
@@ -9,11 +9,13 @@ local add_lib = function (path)
   package.path  = env.prepend_var(package.path,  path .. '/?/init.lua', ';')
 end
 
-local setup = function(_, pconfig)
-  local tools = pconfig._config.tool
-  if not tools then return end
+local setup = function(self)
+  local tools = self._config.tool
 
-  local runner  = tools.runner or {}
+  if not tools then return end
+  if not tools.runner then return end
+
+  local runner  = tools.runner
 
   local lib = runner.lib
 
@@ -21,12 +23,12 @@ local setup = function(_, pconfig)
     local paths = type(lib) == 'table' and lib or {lib}
 
     for _,path in ipairs(paths) do
-      add_lib(pconfig._root .. '/' .. path)
+      add_lib(self._root .. '/' .. path)
     end
   end
 
   if runner.plugin == 1 then
-    local plugin_dir  = pconfig._root .. '/plugin'
+    local plugin_dir  = self._root .. '/plugin'
 
     local vim_scripts = scanner(
       plugin_dir, {
@@ -56,7 +58,7 @@ local setup = function(_, pconfig)
   end
 
   if runner.init then
-    local pinit = pconfig._root .. '/' .. runner.init
+    local pinit = self._root .. '/' .. runner.init
     dofile(pinit)
   end
 end

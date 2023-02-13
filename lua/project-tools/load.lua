@@ -88,6 +88,11 @@ local load_config = function(self, root)
 
   pconfig = vim.tbl_extend("force", self, pconfig)
 
+  -- ================================================
+  -- each "load_config" will create it's own
+  -- object, but will inherit "project-tools"
+  -- object, thus being offspring off "project-tools"
+  --
   return setmetatable(pconfig, getmetatable(self))
 end
 
