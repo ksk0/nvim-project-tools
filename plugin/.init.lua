@@ -1,3 +1,1 @@
-local tools = require('project-tools.tools.lua')
-
-tools.reload('project-tools')
+require('project-tools'):reload('project-tools')

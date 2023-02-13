@@ -2,24 +2,29 @@
 --
 local M = {}
 
-M.test = function ()
-  vim.notify("No tests defined for this project!")
-end
+-- ==============================================
+-- if we don't set initial value for "_lang"
+-- ""__index"" function will loop for ever
+-- searching "_lang" member.
+--
+M._lang = false
 
 return setmetatable(M, {
   __index = function(self, k)
-    local module = "project-tools."
-
     -- if project config is already loaded
     -- call functions for specific language
     --
-    if (self._lang) then
-      module = module .. self._lang .. "."
+    local ok,val
+    local lang = self._lang
+
+    if lang then
+      ok,val = pcall(require, "project-tools.lang." .. lang .. "." .. k)
+    else
+      ok,val = pcall(require, "project-tools." .. k)
+      if not ok then
+        ok,val = pcall(require, "project-tools.lang.default." .. k)
+      end
     end
-
-    module = module .. k
-
-    local ok,val = pcall(require, module)
 
     if ok then
       rawset(self, k, val)
