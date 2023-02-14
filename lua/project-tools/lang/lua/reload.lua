@@ -1,7 +1,17 @@
+-- ============================================================================
+-- this is helper function you can use to reload
+-- luad module and its submodules (it declares them
+-- "fresh" i.e. deletes them from lua cache and
+-- list of loaded modules.
+--
+-- If used without argument it resets 'project-tools'
+-- module/object, but for that purpose "reset" function
+-- should be called instead.
+--
 local luacache = (_G.__luacache or {}).cache
 
-local reload = function(_,what)
-  if not what then return end
+local reload = function(self,what)
+  what = what or 'project-tools'
 
   local pattern = "^" .. vim.pesc(what) .. "%."
 
@@ -21,6 +31,14 @@ local reload = function(_,what)
         luacache[pack] = nil
       end
     end
+  end
+
+  if what == 'project-tools' then
+    for key,_ in pairs(self) do
+      rawset(self, key, nil)
+    end
+
+    self._lang = false
   end
 end
 

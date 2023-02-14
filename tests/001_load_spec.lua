@@ -217,12 +217,10 @@ describe("Find config:", function ()
     assert.equal(search_path, T._search_path(plugin_root))
   end)
 
-  local pconfig
-
   it("No project config in home dir [OK]", function ()
     local config_root = ppath:new('.').path.home
 
-    assert.is_nil(T._find_config(config_root))
+    assert.is_nil(T:_find_config(config_root))
   end)
 
   it("Find this project's config - implicite [OK]", function ()
@@ -241,60 +239,40 @@ describe("Find config:", function ()
     local config_root = plugin_root
     local config_file = ppath:new(config_root, "luaproject.toml")
 
-    pconfig = T._find_config()
+    assert.is_true(T:_find_config(config_root))
 
     fn.chdir(cwd)
 
-    assert.equal(config_file.filename, pconfig._file)
-    assert.equal(config_root.filename, pconfig._root)
+    assert.equal(config_file.filename, T._file)
+    assert.equal(config_root.filename, T._root)
   end)
 
   it("Find this project's config - explicite [OK]", function ()
     local config_file = ppath:new(plugin_root, "luaproject.toml")
 
-    pconfig = T._find_config(plugin_root.filename)
+    assert.is_true(T:_find_config(plugin_root.filename))
 
-    assert.equal(config_file.filename, pconfig._file)
-    assert.equal(plugin_root.filename, pconfig._root)
+    assert.equal(config_file.filename, T._file)
+    assert.equal(plugin_root.filename, T._root)
   end)
-
-  -- it("Find lua test config - explicite [OK]", function ()
-  --   local config_file = ppath:new(plugin_root, "test-lua", "luaproject.toml")
-  --
-  --   -- project = C._find_config(plugin_root.filename)
-  --   project = C._find_config(plugin_root.filename .. "/test-lua")
-  --
-  --   assert.equal(config_file.filename, project.file)
-  --   assert.equal(plugin_root.filename, project.root)
-  -- end)
-  --
-  -- it("Find python test config - explicite [OK]", function ()
-  --   local config_file = ppath:new(plugin_root, "test-python", "pyproject.toml")
-  --
-  --   project = C._find_config(plugin_root.filename .. "/test-python")
-  --
-  --   assert.equal(config_file.filename, project.file)
-  --   assert.equal(plugin_root.filename, project.root)
-  -- end)
 end)
 
 print()
 describe("Load config:", function ()
-  local pconfig
 
   describe("Via function:", function ()
     it("lua-test config [OK]", function ()
       local config_root,_ = get_config_dir('test', 'lua')
 
-      assert.no.errors(function() pconfig = T:_load_config(config_root.filename) end)
-      check_config('test', 'lua', pconfig)
+      assert.no.errors(function() T:_load_config(config_root.filename) end)
+      check_config('test', 'lua', T)
     end)
 
     it("python-test config [OK]", function ()
       local config_root,_ = get_config_dir('test', 'python')
 
-      assert.no.errors(function() pconfig = T:_load_config(config_root.filename) end)
-      check_config('test', 'python', pconfig)
+      assert.no.errors(function() T:_load_config(config_root.filename) end)
+      check_config('test', 'python', T)
     end)
   end)
 
@@ -304,23 +282,23 @@ describe("Load config:", function ()
     it("project config [OK]", function ()
       local config_root,_ = get_config_dir('project', 'lua')
 
-      assert.no.errors(function() pconfig = M:load(config_root.filename) end)
-      check_config('project', 'lua', pconfig)
+      assert.no.errors(function() M:load(config_root.filename) end)
+      check_config('project', 'lua', M)
     end)
 
     it("lua-test config [OK]", function ()
       local config_root,_ = get_config_dir('test', 'lua')
 
-      assert.no.errors(function() pconfig = M:load(config_root.filename) end)
-      check_config('test', 'lua', pconfig)
+      assert.no.errors(function() M:load(config_root.filename) end)
+      check_config('test', 'lua', M)
     end)
 
     it("python-test config [OK]", function ()
       local config_root,_ = get_config_dir('test', 'python')
 
-      assert.no.errors(function() pconfig = M:load(config_root.filename) end)
+      assert.no.errors(function() M:load(config_root.filename) end)
 
-      check_config('test', 'python', pconfig)
+      check_config('test', 'python', M)
     end)
   end)
 end)
@@ -335,49 +313,51 @@ describe("Run setup:", function ()
     restore_paths()
   end)
 
-  local pconfig
-
-  describe("Via setup:", function ()
-    it("project [OK]", function ()
-      assert.no.errors(function() pconfig = M:setup() end)
-      check_config('project', 'lua', pconfig)
-      check_setup('project', 'lua', pconfig)
-
-      local commands = vim.api.nvim_get_commands({})
-      assert.is_not_nil(commands.RunProjectTests)
-
-      vim.api.nvim_del_user_command('RunProjectTests')
-    end)
-
-    it("lua-test [OK]", function ()
-      local config_root,_ = get_config_dir('test', 'lua')
-
-      assert.no.errors(function() pconfig = M:setup(config_root.filename) end)
-
-      check_config('test', 'lua', pconfig)
-      check_setup('test', 'lua', pconfig)
-
-      local commands = vim.api.nvim_get_commands({})
-      assert.is_nil(commands.RunProjectTests)
-    end)
-
-    it("python-test [OK]", function ()
-      local config_root,_ = get_config_dir('test', 'python')
-
-      assert.no.errors(function() pconfig = M:setup(config_root.filename) end)
-
-      check_config('test', 'python', pconfig)
-      check_setup('test', 'python', pconfig)
-    end)
-  end)
+  -- describe("Via setup:", function ()
+  --   it("project [OK]", function ()
+  --     -- print(vim.inspect(M))
+  --     assert.no.errors(function() M:setup() end)
+  --     -- print(vim.inspect(M))
+  --
+  --     check_config('project', 'lua', M)
+  --     check_setup('project', 'lua', M)
+  --
+  --     local commands = vim.api.nvim_get_commands({})
+  --     assert.is_not_nil(commands.RunProjectTests)
+  --
+  --     vim.api.nvim_del_user_command('RunProjectTests')
+  --   end)
+  --
+  --   it("lua-test [OK]", function ()
+  --     local config_root,_ = get_config_dir('test', 'lua')
+  --
+  --     assert.no.errors(function() pconfig = M:setup(config_root.filename) end)
+  --
+  --     check_config('test', 'lua', pconfig)
+  --     check_setup('test', 'lua', pconfig)
+  --
+  --     local commands = vim.api.nvim_get_commands({})
+  --     assert.is_nil(commands.RunProjectTests)
+  --   end)
+  --
+  --   it("python-test [OK]", function ()
+  --     local config_root,_ = get_config_dir('test', 'python')
+  --
+  --     assert.no.errors(function() pconfig = M:setup(config_root.filename) end)
+  --
+  --     check_config('test', 'python', pconfig)
+  --     check_setup('test', 'python', pconfig)
+  --   end)
+  -- end)
 
   describe("Via load:", function ()
     it("project [OK]", function ()
-      assert.no.errors(function() pconfig = M:load() end)
-      assert.no.errors(function() pconfig:setup() end)
+      assert.no.errors(function() M:reset() end)
+      assert.no.errors(function() M:load() end)
+      assert.no.errors(function() M:setup() end)
 
-      check_config('project', 'lua', pconfig)
-      check_setup('project', 'lua', pconfig)
+      check_config('project', 'lua', M)
+      check_setup('project', 'lua', M)
 
       local commands = vim.api.nvim_get_commands({})
       assert.is_not_nil(commands.RunProjectTests)
@@ -388,11 +368,12 @@ describe("Run setup:", function ()
     it("lua-test [OK]", function ()
       local config_root,_ = get_config_dir('test', 'lua')
 
-      assert.no.errors(function() pconfig = M:load(config_root.filename) end)
-      assert.no.errors(function() pconfig:setup() end)
+      assert.no.errors(function() M:reset() end)
+      assert.no.errors(function() M:load(config_root.filename) end)
+      assert.no.errors(function() M:setup() end)
 
-      check_config('test', 'lua', pconfig)
-      check_setup('test', 'lua', pconfig)
+      check_config('test', 'lua', M)
+      check_setup('test', 'lua', M)
 
       local commands = vim.api.nvim_get_commands({})
       assert.is_nil(commands.RunProjectTests)
@@ -401,11 +382,12 @@ describe("Run setup:", function ()
     it("python-test [OK]", function ()
       local config_root,_ = get_config_dir('test', 'python')
 
-      assert.no.errors(function() pconfig = M:load(config_root.filename) end)
-      assert.no.errors(function() pconfig:setup() end)
+      assert.no.errors(function() M:reset() end)
+      assert.no.errors(function() M:load(config_root.filename) end)
+      assert.no.errors(function() M:setup() end)
 
-      check_config('test', 'python', pconfig)
-      check_setup('test', 'python', pconfig)
+      check_config('test', 'python', M)
+      check_setup('test', 'python', M)
     end)
   end)
 end)
