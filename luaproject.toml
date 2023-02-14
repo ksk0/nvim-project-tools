@@ -2,7 +2,7 @@
   dir = "tests"
   sequential = true
 
-[tool.runner]
-  lib = "lua"
-  plugin = false
-  init = "plugin/.init.lua"
+# [tool.runner]
+# lib = "lua"
+# plugin = false
+# init = "plugin/.init.lua"
