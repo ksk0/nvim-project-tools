@@ -1,27 +1,24 @@
 local M = {}
 local extend_list = vim.fn.extend
+local flatten = vim.fn.flatten
 
 -- ============================================================================
 -- list functions
 --
 local count_members = function(list)
-  local slist = list or {}
   local count = {}
-
-  for _,v in ipairs(slist) do
+  for _,v in ipairs(list) do
     count[v] = count[v] and count[v] + 1 or 1
   end
 
   return count
 end
 
-M.union = function(list_a, list_b)
+M.union = function(list_a, ...)
   local union = {}
   local result = {}
-  local slist_a = list_a or {}
-  local slist_b = list_b or {}
 
-  for _,v in ipairs(extend_list(slist_a, slist_b)) do
+  for _,v in ipairs(flatten(extend_list(list_a, {...}))) do
     if not union[v] then
       table.insert(result, v)
       union[v] = true
@@ -31,13 +28,11 @@ M.union = function(list_a, list_b)
   return result
 end
 
-M.intersection = function(list_a, list_b)
-  local slist_a = list_a or {}
-  local slist_b = list_b or {}
-  local count = count_members(extend_list(slist_a, slist_b))
+M.intersection = function(list_a, ...)
+  local count = count_members(extend_list(list_a, M.union(...)))
   local result = {}
 
-  for _,v in ipairs(slist_a) do
+  for _,v in ipairs(list_a) do
     if count[v] > 1 then
       table.insert(result, v)
     end
@@ -46,14 +41,12 @@ M.intersection = function(list_a, list_b)
   return result
 end
 
-M.sub = function(list_a, list_b)
-  local slist_a = list_a or {}
-  local slist_b = list_b or {}
-  local section = M.intersection(slist_a, slist_b)
-  local count = count_members(extend_list(slist_a, section))
+M.sub = function(list_a, ...)
+  local section = M.intersection(list_a, M.union(...))
+  local count = count_members(extend_list(list_a, section))
   local result = {}
 
-  for _,v in ipairs(slist_a) do
+  for _,v in ipairs(list_a) do
     if count[v] == 1 then
 
       table.insert(result, v)
