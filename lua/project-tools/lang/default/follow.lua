@@ -5,29 +5,30 @@ local api = vim.api
 -- ============================================
 -- parse and check options
 --
-local check_event = function(name, event)
-  if type(event) ~= 'table' then
-    error('follow [' .. name .. ']: must be table of options', 5)
+local check_event = function(options, event)
+  local e_options = options[event]
+  if type(e_options) ~= 'table' then
+    error('follow [' .. event .. ']: must be table of options', 5)
   end
 
-  local opts = vim.tbl_keys(event)
+  local opts = vim.tbl_keys(e_options)
   local invalid = list.sub(opts, {"action", "once"})
 
   if #invalid ~= 0 then
     local invalids = '"' .. fn.join(invalid, '", "') .. '"'
-    error('follow [' .. name .. ']: invalid option(s): ' .. invalids, 5)
+    error('follow [' .. event .. ']: invalid option(s): ' .. invalids, 5)
   end
 
-  if event.action == nil then
-    error('follow [' .. name .. ']: "action" must be given', 5)
+  if e_options.action == nil then
+    error('follow [' .. event .. ']: "action" must be given', 5)
   end
 
-  if type(event.action) ~= 'function' then
-    error('follow [' .. name .. ']: "action" must be function', 5)
+  if type(e_options.action) ~= 'function' then
+    error('follow [' .. event .. ']: "action" must be function', 5)
   end
 
-  if event.once ~= nil and type(event.once) ~= 'boolean' then
-    error('follow [' .. name .. ']: "once" option is boolean', 5)
+  if e_options.once ~= nil and type(e_options.once) ~= 'boolean' then
+    error('follow [' .. event .. ']: "once" option is boolean', 5)
   end
 end
 
@@ -54,17 +55,17 @@ local check_options = function(options)
 
 
   if options.enter then
-    check_event("enter", options.enter)
+    check_event(options, "enter")
   end
 
   if options.leave then
-    check_event("leave", options.leave)
+    check_event(options, "leave")
   end
 end
 
-local parse_event = function(event)
-  if event.once == nil then
-    event.once = true
+local parse_event = function(e_options)
+  if e_options.once == nil then
+    e_options.once = true
   end
 end
 
@@ -88,35 +89,48 @@ end
 -- ============================================
 -- worker functions
 --
-local buff_worker = function(event)
-  if not event then return end
+local buff_event_worker = function(self, event)
+  local follower_no = #self._followers
+  if follower_no == 0 then return end
+
+  local e_options = self._followers[follower_no][event]
+  if not e_options then return end
+
   local buffer = api.nvim_get_current_buf()
 
-  if event.done and event.done[buffer] then return end
+  if fn.getbufvar(buffer,'&filetype') ~= self._lang then
+    return
+  end
 
-  event.action(buffer)
+  if e_options.done and e_options.done[buffer] then return end
 
-  if event.once then
-    event.done = event.done or {}
-    event.done[buffer] = true
+  e_options.action(buffer)
+
+  if e_options.once then
+    e_options.done = e_options.done or {}
+    e_options.done[buffer] = true
   end
 end
 
 local buff_enter_worker = function(self)
   return function()
-    local follower_no = #self._followers
-    if follower_no == 0 then return end
+    buff_event_worker(self, 'enter')
 
-    buff_worker(self._followers[follower_no].enter)
+    -- local follower_no = #self._followers
+    -- if follower_no == 0 then return end
+    --
+    -- buff_event_worker(self, self._followers[follower_no].enter)
   end
 end
 
 local buff_leave_worker = function(self)
   return function()
-    local follower_no = #self._followers
-    if follower_no == 0 then return end
+    buff_event_worker(self, 'leave')
 
-    buff_worker(self._followers[follower_no].leave)
+    -- local follower_no = #self._followers
+    -- if follower_no == 0 then return end
+    --
+    -- buff_event_worker(self, self._followers[follower_no].leave)
   end
 end
 
@@ -127,8 +141,7 @@ end
 local init_folowers = function(self, options)
   self._followers = self._followers or {}
 
-  local options_copy = vim.deepcopy(options)
-  table.insert(self._followers, options_copy)
+  table.insert(self._followers, vim.deepcopy(options))
 
   local gid  = api.nvim_create_augroup("NvimProjectTools",{})
   local cmds = api.nvim_get_autocmds({group = gid})
@@ -137,23 +150,26 @@ local init_folowers = function(self, options)
 
   if #cmds ~= 0 then return end
 
+  local enter_worker = buff_enter_worker(self)
+  local leave_worker = buff_leave_worker(self)
+
   local enter_opts = {
     group = gid,
     pattern = '*',
-    callback = buff_enter_worker(self)
+    callback = enter_worker,
   }
 
   local leave_opts = {
     group = gid,
     pattern = '*',
-    callback = buff_leave_worker(self)
+    callback = leave_worker,
   }
 
   api.nvim_create_autocmd("BufEnter", enter_opts)
   api.nvim_create_autocmd("BufLeave", leave_opts)
 
   if options.enter and options.init then
-    buff_worker(options_copy.enter)
+    enter_worker()
   end
 end
 
