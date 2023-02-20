@@ -5,6 +5,21 @@ local flatten = vim.fn.flatten
 -- ============================================================================
 -- list functions
 --
+local normalize = function(list)
+  local i=1
+  local R = {}
+  local keys = vim.tbl_keys(list)
+
+  table.sort(keys)
+
+  for _,k in ipairs(keys) do
+    R[i] = list[k]
+    i = i + 1
+  end
+
+  return R
+end
+
 local count_members = function(list)
   local count = {}
   for _,v in ipairs(list) do
@@ -17,8 +32,11 @@ end
 M.union = function(list_a, ...)
   local union = {}
   local result = {}
+  local var_list = normalize({...})
 
-  for _,v in ipairs(flatten(extend_list(list_a, {...}))) do
+  list_a = list_a or {}
+
+  for _,v in ipairs(flatten(extend_list(list_a, var_list))) do
     if not union[v] then
       table.insert(result, v)
       union[v] = true
