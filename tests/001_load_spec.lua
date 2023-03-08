@@ -27,8 +27,6 @@
 ---
 -- vim.notify = function() end
 --
-do return end
-
 local ppath = require("plenary.path")
 local fn = vim.fn
 local org_path
